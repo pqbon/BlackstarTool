@@ -138,10 +138,13 @@ namespace BlackstarAmps
         void set_reverb_plate(const Byte size, const Byte level);
 
         void set_patch(const Byte patch);
+
+        void get_patch_name(const Byte patch, std::string &name);
+
+    private:
         void send_get_patch_name(const Byte patch);
         void send_get_patch(const Byte patch);
 
-    private:
         template <ControlBytePatches cb_>
         void send_patch_cmd(const Byte patch);
 
@@ -162,6 +165,8 @@ namespace BlackstarAmps
         HidBufferPnter get_hid_report();
 
         hid_device *dev_handle;
+
+        void print_hid_buffer(HidBufferPnter &ptr);
     };
 
 } // namespace BlackstarAmps

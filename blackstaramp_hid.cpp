@@ -3,6 +3,7 @@
 #include <array>
 #include <memory>
 #include <iostream>
+#include <iomanip>
 
 #include <exception>
 
@@ -16,8 +17,6 @@ namespace BlackstarAmps
 {
     HIDAmp::HIDAmp() : dev_handle {nullptr} {
         int res {};
-        constexpr int MaxStr {255};
-        wchar_t wstr[MaxStr];
 
 	    res = hid_init();
         if(res < 0){
@@ -31,27 +30,6 @@ namespace BlackstarAmps
         if(dev_handle == nullptr){
             goto error;
         }
-
-	    // Read the Manufacturer String
-	    res = hid_get_manufacturer_string(dev_handle, wstr, MaxStr);
-        if(res < 0){
-            goto error;
-        }
-	    std::wcout << L"Manufacturer String: " << *wstr << std::endl;
-
-	    // Read the Product String
-	    res = hid_get_product_string(dev_handle, wstr, MaxStr);
-        if(res < 0){
-            goto error;
-        }
-	    std::wcout << L"Product String: " <<  *wstr << std::endl;
-
-	    // Read the Serial Number String
-	    res = hid_get_serial_number_string(dev_handle, wstr, MaxStr);
-        if(res < 0){
-            goto error;
-        }
-	    std::wcout << L"Serial Number String: " <<  static_cast<unsigned int>(wstr[0]) << " " <<  *wstr << std::endl;
 
         return;
 error:
@@ -187,6 +165,23 @@ error:
         send_patch_cmd<ControlBytePatches::READ_PATCH>(patch);
     }
 
+    void HIDAmp::get_patch_name(const Byte patch, std::string &name){
+        send_get_patch_name(patch);
+        HidBufferPnter hidbuf {get_hid_report()};
+
+        name.reserve(hid_report_sz);
+        //print_hid_buffer(hidbuf);
+
+        if((hidbuf->at(0) == static_cast<Byte>(ControlPage::Patches)) && (hidbuf->at(1) == static_cast<Byte>(ControlBytePatches::READ_NAME)) &&
+            (hidbuf->at(2) == patch) && (hidbuf->at(3) == 0x15))
+        {
+            const auto *ptr {hidbuf->data() + 4};
+            for (auto idx {0}; *(ptr + idx) != '\0'; ++idx){
+                name.push_back(*(ptr + idx));
+            }
+        }
+    }
+
     template <ControlBytePatches cb_>
     void HIDAmp::send_patch_cmd(const Byte patch){
         HidBufferPnter hidbuf { std::make_unique<HidBuffer>() };
@@ -257,6 +252,14 @@ error:
         }
 
         return hidbuf;
+    }
+
+    void HIDAmp::print_hid_buffer(HidBufferPnter &ptr){
+        std::cout << "HID Report:";
+        for(Byte data : *ptr){
+            std::cout << " " << std::setfill('0') << std::setw(2) << std::hex << static_cast<unsigned int>(data);
+        }
+        std::cout << std::endl;
     }
 
 }  // namespace BlackstarAmps
