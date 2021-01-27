@@ -26,7 +26,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[]){
     for(auto patch_id {1}; patch_id < 129; ++patch_id){
         std::string name {};
         amp_hid.get_patch_name(patch_id, name);
-        std::cout << "Patch: " << patch_id << " " << name << std::endl;
+        std::cout << "Patch: " << patch_id << " Name Len: " << std::dec << name.size() << " - " << name << std::endl;
+        amp_hid.get_patch(patch_id);
     }
 
 }

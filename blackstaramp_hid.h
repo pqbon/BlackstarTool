@@ -140,6 +140,7 @@ namespace BlackstarAmps
         void set_patch(const Byte patch);
 
         void get_patch_name(const Byte patch, std::string &name);
+        void get_patch(const Byte patch);
 
     private:
         void send_get_patch_name(const Byte patch);

@@ -170,16 +170,22 @@ error:
         HidBufferPnter hidbuf {get_hid_report()};
 
         name.reserve(hid_report_sz);
-        //print_hid_buffer(hidbuf);
 
         if((hidbuf->at(0) == static_cast<Byte>(ControlPage::Patches)) && (hidbuf->at(1) == static_cast<Byte>(ControlBytePatches::READ_NAME)) &&
             (hidbuf->at(2) == patch) && (hidbuf->at(3) == 0x15))
         {
             const auto *ptr {hidbuf->data() + 4};
-            for (auto idx {0}; *(ptr + idx) != '\0'; ++idx){
+            for (auto idx {0}; (idx < hidbuf->at(3)) && (*(ptr + idx) != '\0'); ++idx){
                 name.push_back(*(ptr + idx));
             }
         }
+    }
+
+    void HIDAmp::get_patch(const Byte patch){
+        send_get_patch(patch);
+        HidBufferPnter hidbuf {get_hid_report()};
+
+        print_hid_buffer(hidbuf);
     }
 
     template <ControlBytePatches cb_>
